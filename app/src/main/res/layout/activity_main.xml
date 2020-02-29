@@ -1,18 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/top_choose_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|center_horizontal|top"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <Button
+            android:id="@+id/Drive_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="驾车" />
+
+        <Button
+            android:id="@+id/Bike_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="骑行" />
+
+        <Button
+            android:id="@+id/Walk_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="步行" />
+
+        <Button
+            android:id="@+id/Bus_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="公交" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/select_button_bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:gravity="bottom|center"
+        android:text="导航"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.amap.api.maps.MapView
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+    </com.amap.api.maps.MapView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

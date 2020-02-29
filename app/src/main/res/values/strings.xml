@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MapAps</string>
+
+    <string name="driving_route">驾车</string>
+    <string name="busing_route">公交</string>
+    <string name="biking_route">骑行</string>
+    <string name="walking_route">步行</string>
+    <string name="input_cross_location">请输入目的地</string>
+    <string name="title_activity_aps__tab_">Aps_Tab_Activity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
 </resources>
