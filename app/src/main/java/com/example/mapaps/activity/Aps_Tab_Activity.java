@@ -1,15 +1,18 @@
 package com.example.mapaps.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.CameraUpdate;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
+import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.maps.model.PolylineOptions;
@@ -35,14 +38,13 @@ import com.example.mapaps.R;
 import com.example.mapaps.activity.ui.main.SectionsPagerAdapter;
 import com.example.mapaps.adapter.Common_Data;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
 
 public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.OnRouteSearchListener , Common_Data {
     //地图样式参数
@@ -66,24 +68,78 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
         setContentView(R.layout.activity_aps__tab);
 
         //获取地图控件引用
-        mMapView = (MapView) findViewById(R.id.map);
+        mMapView = (MapView) findViewById(R.id.aps_tab_view);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
         mMapView.onCreate(savedInstanceState);
-
+        init();
+        aps_fragment=new APS_Fragment();
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
-        ViewPager viewPager = findViewById(R.id.view_pager);
-        viewPager.setAdapter(sectionsPagerAdapter);
+        //ViewPager viewPager = findViewById(R.id.view_pager);
+        //viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = findViewById(R.id.tabs);
-        tabs.setupWithViewPager(viewPager);
+        //tabs.setupWithViewPager(viewPager);
         FloatingActionButton fab = findViewById(R.id.fab);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+                //todo 打开aps界面
+                switch (aps_code) {
+                    //驾车
+                    case Common_Data.Drive_code:
+                        //骑行
+                    case Common_Data.Bike_code:
+                        //步行
+                    case Common_Data.Walk_code:
+                        //公交
+                    case Common_Data.Bus_code:
+                        aps_fragment.show(getSupportFragmentManager(),"aps");
+                        break;
+                    default:
+                        break;
+                }
             }
         });
+
+        getLoc(getIntent());
+    }
+
+    // 初始化AMap对象
+    void init() {
+        if (aMap == null) {
+            aMap = mMapView.getMap();
+            // 创建一个设置放大级别的CameraUpdate
+            CameraUpdate cu = CameraUpdateFactory.zoomTo(14);
+            // 设置地图的默认放大级别
+            aMap.moveCamera(cu);
+            // 创建一个更改地图倾斜度的CameraUpdate
+            CameraUpdate tiltUpdate = CameraUpdateFactory.changeTilt(30);
+            // 改变地图的倾斜度
+            aMap.moveCamera(tiltUpdate);
+            //设置点击事件
+            aMap.setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    return false;
+                }
+            });
+        }
+    }
+
+    //获取起点终点数据
+    private void getLoc(@Nullable Intent data){
+        this.city_code=data.getStringExtra("city_code");
+        this.user_loc=new LatLonPoint(data.getDoubleExtra("slat",0),data.getDoubleExtra("slon",0));
+        this.goal_loc=new LatLonPoint(data.getDoubleExtra("elat",0),data.getDoubleExtra("elon",0));
+        Log.e("test1","地点坐标为："+goal_loc.getLongitude()+","+goal_loc.getLatitude());
+        aps_fragment.setmStartLatlng(this.user_loc);
+        this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        //测试绘制路线，默认驾车模式
+        if(!startRouteSreach(this.user_loc,this.goal_loc,Common_Data.Drive_code)){
+            Toast.makeText(Aps_Tab_Activity.this,"进行路线规划失败",Toast.LENGTH_SHORT).show();
+        }
     }
 
     //进行路线规划
@@ -261,6 +317,7 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
     public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int i) {
         // 清理地图上的所有覆盖物
         aMap.clear();
+        aps_code=Common_Data.Drive_code;
         if (i == AMapException.CODE_AMAP_SUCCESS) {
             //获取路径结果
             DrivePath drivePath=driveRouteResult.getPaths().get(0);

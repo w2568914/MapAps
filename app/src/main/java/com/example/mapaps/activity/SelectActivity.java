@@ -1,10 +1,5 @@
 package com.example.mapaps.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -30,12 +25,19 @@ import com.zhy.adapter.recyclerview.base.ViewHolder;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import static com.amap.api.services.core.AMapException.CODE_AMAP_SUCCESS;
 
 public class SelectActivity extends AppCompatActivity implements TextWatcher, PoiSearch.OnPoiSearchListener, Common_Data {
     //POI参数
     private PoiSearch.Query query;// Poi查询条件类
     private ArrayList<PoiItem> poiItems;// poi数据
+    private LatLonPoint user_loc=null;
+    private String city_code=null;
 
     //搜索框
     private EditText inputText=null;
@@ -47,6 +49,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select);
+
+        Intent intent=getIntent();
+        user_loc=new LatLonPoint(intent.getDoubleExtra("slat",0),intent.getDoubleExtra("slon",0));
+        city_code=intent.getStringExtra("city_code");
 
         poiItems=new ArrayList<PoiItem>();
 
@@ -160,13 +166,16 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
                                     Bundle bundle=new Bundle();
                                     bundle.putString("name",title);
                                     bundle.putString("detail",text);
-                                    bundle.putDouble("lon",lon);
-                                    bundle.putDouble("lat",lat);
+                                    bundle.putString("city_code",city_code);
+                                    bundle.putDouble("slon",user_loc.getLongitude());
+                                    bundle.putDouble("slat",user_loc.getLatitude());
+                                    bundle.putDouble("elon",lon);
+                                    bundle.putDouble("elat",lat);
                                     //todo 回传地点信息
-                                    Intent intent=new Intent(SelectActivity.this,MainActivity.class);
+                                    Intent intent=new Intent(SelectActivity.this,Aps_Tab_Activity.class);
                                     intent.putExtras(bundle);
 
-                                    setResult(Common_Data.POI_Return,intent);
+                                    startActivity(intent);
                                     finish();
                                 }
                             });

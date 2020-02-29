@@ -1,10 +1,5 @@
 package com.example.mapaps.activity;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -59,6 +54,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity implements LocationSource, AMapLocationListener, RouteSearch.OnRouteSearchListener , Common_Data {
 
@@ -190,7 +190,15 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
             @Override
             public void onClick(View v) {
                 //todo 打开aps界面
-                switch (aps_code) {
+                Bundle bundle=new Bundle();
+                bundle.putDouble("slon",user_loc.getLongitude());
+                bundle.putDouble("slat",user_loc.getLatitude());
+                bundle.putString("city_code",city_code);
+               final Intent aps_intent=new Intent(MainActivity.this,SelectActivity.class);
+               aps_intent.putExtras(bundle);
+               //startActivityForResult(aps_intent,Common_Data.POI_Res);
+                startActivity(aps_intent);
+                /*switch (aps_code) {
                     //驾车
                     case Common_Data.Drive_code:
                         //骑行
@@ -203,10 +211,9 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
                         break;
                     //默认进入搜索界面
                     default:
-                        final Intent aps_intent=new Intent(MainActivity.this,SelectActivity.class);
-                        startActivityForResult(aps_intent,Common_Data.POI_Res);
+
                         break;
-                }
+                }*/
             }
         });
     }

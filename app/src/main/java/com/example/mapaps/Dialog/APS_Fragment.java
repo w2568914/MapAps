@@ -160,9 +160,8 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
                 sList.add(mStartLatlng);
                 eList.add(mEndLatlng);
                 Log.e("test1","开始算路");
-                //
                 if(!mapNavi.calculateDriveRoute(sList,eList,null,strategy)){
-                    Log.e("test","非法请求");
+                    Log.e("test3","非法请求");
                 }
                 break;
             //骑行
@@ -223,7 +222,7 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
 
     @Override
     public void onCalculateRouteFailure(int i) {
-        Log.e("test","非法请求");
+        Log.e("test2","非法请求");
     }
 
     @Override

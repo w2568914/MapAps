@@ -24,16 +24,6 @@
         android:roundIcon="@drawable/launch_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activity.Aps_Tab_Activity"
-            android:label="@string/title_activity_aps__tab_"
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <!-- 高德Key -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
@@ -41,15 +31,26 @@
 
         <service android:name="com.amap.api.location.APSService" />
 
-        <activity android:name=".activity.MainActivity">
+        <activity android:name=".activity.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.SelectActivity">
+        <activity android:name=".activity.SelectActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.Aps_Tab_Activity"
+            android:label="@string/title_activity_aps__tab_"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
