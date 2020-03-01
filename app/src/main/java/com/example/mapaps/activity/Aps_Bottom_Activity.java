@@ -11,6 +11,7 @@ import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdate;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
+import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.Marker;
@@ -80,7 +81,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 Log.e("test","log:"+aps_code);
                 switch (menuItem.getItemId()){
-                    //todo 添加按钮判断
                     case R.id.drive_item:
                         aps_code=Common_Data.Drive_code;
                         break;
@@ -274,10 +274,10 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
 
         //绘制起始位置和目的地marker
         aMap.addMarker(new MarkerOptions()
-                .icon(null)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.start))
                 .position(routeStart));
         aMap.addMarker(new MarkerOptions()
-                .icon(null)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.end))
                 .position(routeEnd));
 
         //绘制规划路径路线
@@ -286,7 +286,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 .addAll(latLngs)
                 //线的宽度
                 .width(30)
-                .color(getResources().getColor(R.color.design_default_color_primary_dark)));//设置画线的颜色
+                .color(getResources().getColor(R.color.colorPrimary)));//设置画线的颜色
 
         //显示完整包含所有marker地图路线
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
