@@ -3,6 +3,7 @@ package com.example.mapaps.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,7 +15,6 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
-import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.maps.model.PolylineOptions;
 import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
@@ -35,75 +35,93 @@ import com.amap.api.services.route.WalkRouteResult;
 import com.amap.api.services.route.WalkStep;
 import com.example.mapaps.Dialog.APS_Fragment;
 import com.example.mapaps.R;
-import com.example.mapaps.activity.ui.main.SectionsPagerAdapter;
 import com.example.mapaps.adapter.Common_Data;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.ui.AppBarConfiguration;
 
-public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.OnRouteSearchListener , Common_Data {
+public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearch.OnRouteSearchListener , Common_Data {
+
     //地图样式参数
-    private static final int WRITE_COARSE_LOCATION_REQUEST_CODE = 0;
     MapView mMapView=null;
     AMap aMap=null;
-    MyLocationStyle myLocationStyle=null;
     //路线规划参数
     private com.amap.api.services.core.LatLonPoint user_loc=null;
     private com.amap.api.services.core.LatLonPoint goal_loc=null;
     private RouteSearch.FromAndTo fromAndTo=null;
     private RouteSearch routeSearch=null;
     private String city_code=null;
-    private int aps_code=-1;
+    private int aps_code=1;
     //用户界面元素
     private APS_Fragment aps_fragment=null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_aps__tab);
+        setContentView(R.layout.activity_aps__bottom);
 
+        getLoc(getIntent());
         //获取地图控件引用
-        mMapView = (MapView) findViewById(R.id.aps_tab_view);
+        mMapView = (MapView) findViewById(R.id.aps_bot_view);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
         mMapView.onCreate(savedInstanceState);
         init();
-        aps_fragment=new APS_Fragment();
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
-        //ViewPager viewPager = findViewById(R.id.view_pager);
-        //viewPager.setAdapter(sectionsPagerAdapter);
-        TabLayout tabs = findViewById(R.id.tabs);
-        //tabs.setupWithViewPager(viewPager);
-        FloatingActionButton fab = findViewById(R.id.fab);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                //todo 打开aps界面
-                switch (aps_code) {
-                    //驾车
-                    case Common_Data.Drive_code:
-                        //骑行
-                    case Common_Data.Bike_code:
-                        //步行
-                    case Common_Data.Walk_code:
-                        //公交
-                    case Common_Data.Bus_code:
-                        aps_fragment.show(getSupportFragmentManager(),"aps");
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                Log.e("test","log:"+aps_code);
+                switch (menuItem.getItemId()){
+                    //todo 添加按钮判断
+                    case R.id.drive_item:
+                        aps_code=Common_Data.Drive_code;
+                        break;
+                    case R.id.ride_item:
+                        aps_code=Common_Data.Bike_code;
+                        break;
+                    case R.id.walk_item:
+                        aps_code=Common_Data.Walk_code;
+                        break;
+                    case R.id.bus_item:
+                        aps_code=Common_Data.Bus_code;
                         break;
                     default:
-                        break;
+                        throw new IllegalStateException("Unexpected value: " + menuItem.getItemId());
+                }
+                aps_fragment.setAps_code(aps_code);
+                if(!startRouteSreach(user_loc,goal_loc,aps_code)) {
+                    Log.e("test","初始规划失败");
+                }
+                Log.e("test","log:"+aps_code);
+                return true;
+            }
+        });
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.drive_item,R.id.ride_item,R.id.walk_item,R.id.bus_item)
+                .build();
+
+        FloatingActionButton start_btn=findViewById(R.id.start_aps_Button);
+        start_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(aps_code!=Common_Data.Bus_code){
+                    aps_fragment.show(getSupportFragmentManager(),"aps");
+                }
+                else {
+                    Toast.makeText(Aps_Bottom_Activity.this,"本版本不支持公交导航",Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-        getLoc(getIntent());
     }
 
     // 初始化AMap对象
@@ -118,6 +136,8 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             CameraUpdate tiltUpdate = CameraUpdateFactory.changeTilt(30);
             // 改变地图的倾斜度
             aMap.moveCamera(tiltUpdate);
+            //将地图移动到定位点
+            aMap.moveCamera(CameraUpdateFactory.changeLatLng(new LatLng(this.user_loc.getLatitude(),this.user_loc.getLongitude())));
             //设置点击事件
             aMap.setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
                 @Override
@@ -125,21 +145,23 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
                     return false;
                 }
             });
+            aps_fragment=new APS_Fragment();
+            aps_fragment.setAps_code(aps_code);
+            aps_fragment.setmStartLatlng(user_loc);
+            aps_fragment.setmEndLatlng(goal_loc);
+            if(!startRouteSreach(user_loc,goal_loc,aps_code)) {
+                Log.e("test","初始规划失败");
+            }
         }
     }
 
     //获取起点终点数据
-    private void getLoc(@Nullable Intent data){
+    private void getLoc(@NonNull Intent data){
         this.city_code=data.getStringExtra("city_code");
         this.user_loc=new LatLonPoint(data.getDoubleExtra("slat",0),data.getDoubleExtra("slon",0));
         this.goal_loc=new LatLonPoint(data.getDoubleExtra("elat",0),data.getDoubleExtra("elon",0));
         Log.e("test1","地点坐标为："+goal_loc.getLongitude()+","+goal_loc.getLatitude());
-        aps_fragment.setmStartLatlng(this.user_loc);
-        this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        //测试绘制路线，默认驾车模式
-        if(!startRouteSreach(this.user_loc,this.goal_loc,Common_Data.Drive_code)){
-            Toast.makeText(Aps_Tab_Activity.this,"进行路线规划失败",Toast.LENGTH_SHORT).show();
-        }
+        this.aps_code=Common_Data.Drive_code;
     }
 
     //进行路线规划
@@ -152,7 +174,9 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
         }
         routeSearch.setRouteSearchListener(this);
         //todo 测试数据
-        Log.e("test","起点坐标为：（"+start.getLongitude()+","+start.getLatitude()+"）\n终点坐标为：（"+end.getLongitude()+","+end.getLatitude()+"）");
+        Log.e("test","起点坐标为：（"+start.getLongitude()+","+start.getLatitude()
+                +"）\n终点坐标为：（"+end.getLongitude()+","+end.getLatitude()+"）"
+                +"\n code为："+aps_code);
         //todo 分类规划
         switch(Code){
             case Common_Data.Drive_code:
@@ -170,6 +194,8 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
                 break;
             case Common_Data.Bus_code:
                 RouteSearch.BusRouteQuery busRouteQuery=new RouteSearch.BusRouteQuery(fromAndTo,RouteSearch.BUS_COMFORTABLE,city_code,0);
+                routeSearch.calculateBusRouteAsyn(busRouteQuery);
+                break;
             default:
                 return false;
         }
@@ -209,6 +235,7 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             case Common_Data.Bike_code:
                 RideRouteResult rideRouteResult=(RideRouteResult)result;
                 RidePath ridePath=rideRouteResult.getPaths().get(0);
+                Log.e("test","开始绘制骑行路线");
                 for(RideStep mRideStep:ridePath.getSteps()){
                     for(LatLonPoint mLatLonPoint:mRideStep.getPolyline()){
                         latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
@@ -218,6 +245,7 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             case Common_Data.Walk_code:
                 WalkRouteResult walkRouteResult=(WalkRouteResult)result;
                 WalkPath walkPath=walkRouteResult.getPaths().get(0);
+                Log.e("test","开始绘制步行路线");
                 for(WalkStep mWalkStep:walkPath.getSteps()){
                     for(LatLonPoint mLatLonPoint:mWalkStep.getPolyline()){
                         latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
@@ -227,12 +255,14 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             case Common_Data.Bus_code:
                 BusRouteResult busRouteResult=(BusRouteResult)result;
                 BusPath busPath=busRouteResult.getPaths().get(0);
+                Log.e("test","开始绘制公交路线");
                 for(BusStep mBusStep:busPath.getSteps()){
                     for(RouteBusLineItem busLineItem:mBusStep.getBusLines()){
                         for(LatLonPoint mLatLonPoint:busLineItem.getPolyline()){
                             latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
                         }
                     }
+                    //todo 增加绘制步行路线
                 }
                 break;
             default:
@@ -241,7 +271,6 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
 
         //先清除一下,避免重复显示
         aMap.clear();
-        //top_bar.setVisibility(View.VISIBLE);
 
         //绘制起始位置和目的地marker
         aMap.addMarker(new MarkerOptions()
@@ -267,10 +296,6 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
         //显示全部marker,第二个参数是四周留空宽度
         aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(),200));
 
-        //启动导航模块
-        aps_fragment.setmEndLatlng(new LatLonPoint(result.getTargetPos().getLatitude(),result.getTargetPos().getLongitude()));
-        aps_fragment.setAps_code(code);
-        //Select_btn_bom.setText("开始导航");
         this.aps_code=code;
     }
 
@@ -355,7 +380,7 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             long duration=walkPath.getDuration()/60;
             //todo 显示信息
             Log.e("test", "距离/公里"+distance+ "\n时间/分"+duration);
-
+            drawRouteToMap(walkRouteResult,Common_Data.Walk_code);
         }
         else {
             Log.e("test","步行路线规划失败："+i);
@@ -381,10 +406,12 @@ public class Aps_Tab_Activity extends AppCompatActivity implements RouteSearch.O
             long duration=ridePath.getDuration()/60;
             //todo 显示信息
             Log.e("test", "距离/公里"+distance+ "\n时间/分"+duration);
+            drawRouteToMap(rideRouteResult,Common_Data.Bike_code);
         }
         else {
             Log.e("test","骑行路线规划失败");
             Err_check(i);
         }
     }
+
 }

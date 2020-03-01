@@ -9,4 +9,8 @@
     <string name="title_activity_aps__tab_">Aps_Tab_Activity</string>
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
+    <string name="title_activity_aps__bottom_">Aps_Bottom_Activity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>

@@ -56,6 +56,7 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(STYLE_NO_FRAME, android.R.style.Theme_Holo_Light);
     }
 
     @Nullable
@@ -167,19 +168,19 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
             //骑行
             case Common_Data.Bike_code:
                 if(!mapNavi.calculateRideRoute(mStartLatlng,mEndLatlng)){
-                    Log.e("test","非法请求");
+                    Log.e("test5","非法请求");
                 }
                 break;
             //步行
             case Common_Data.Walk_code:
                 if(!mapNavi.calculateWalkRoute(mStartLatlng,mEndLatlng)){
-                    Log.e("test","非法请求");
+                    Log.e("test4","非法请求");
                 }
                 break;
             //公交
             case Common_Data.Bus_code:
             default:
-                Log.e("test","非法请求");
+                Log.e("test10","非法请求");
                 break;
         }
 

@@ -172,7 +172,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
                                     bundle.putDouble("elon",lon);
                                     bundle.putDouble("elat",lat);
                                     //todo 回传地点信息
-                                    Intent intent=new Intent(SelectActivity.this,Aps_Tab_Activity.class);
+                                    Intent intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
                                     intent.putExtras(bundle);
 
                                     startActivity(intent);
