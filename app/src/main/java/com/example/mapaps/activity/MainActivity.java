@@ -26,7 +26,6 @@ import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.example.mapaps.R;
 import com.example.mapaps.adapter.Common_Data;
-import com.tencent.bugly.Bugly;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -60,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //buggly初始化
-        Bugly.init(getApplicationContext(), "3bfc25f272", true);
         //获取地图控件引用
         mMapView = (MapView) findViewById(R.id.map);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
