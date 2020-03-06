@@ -8,7 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
     private String city_code=null;
 
     //用户界面元素
-    private Button Select_btn_bom=null;
+    private EditText Select_btn_bom=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +82,10 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
             aMap.setLocationSource(this);
             // 是否显示定位按钮
             settings.setMyLocationButtonEnabled(true);
+            //是否显示比例尺
+            settings.setScaleControlsEnabled(true);
+            //是否显示指南针
+            settings.setCompassEnabled(true);
             //显示定位层并且可以触发定位,默认是flase
             aMap.setMyLocationEnabled(true);
             // 创建一个设置放大级别的CameraUpdate
@@ -103,8 +107,9 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
         // 开启定位
         initLoc();
 
-        Select_btn_bom=findViewById(R.id.select_button_bottom);
-        Select_btn_bom.setText("设置目的地");
+        Select_btn_bom=findViewById(R.id.select_edit_top);
+        Select_btn_bom.clearFocus();
+        Select_btn_bom.setSelected(false);
         Select_btn_bom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

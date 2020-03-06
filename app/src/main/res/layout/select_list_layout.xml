@@ -3,36 +3,91 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="36dp"
-    android:layout_weight="1"
     android:layout_marginLeft="20dp"
+    android:layout_weight="1"
     android:background="@drawable/search_view_bg"
-    android:orientation="horizontal"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/search_edit_text"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="@drawable/search_edit_bg"
-        android:drawableLeft="@android:drawable/ic_menu_search"
-        android:drawablePadding="16dp"
-        android:hint="@string/input_cross_location"
-        android:maxLines="1"
-        android:paddingLeft="10dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:textColorHint="#9B9B9B"
-        android:textSize="12sp" />
+        android:orientation="horizontal">
 
-    <ImageView
-        android:id="@+id/search_edit_delete"
-        android:layout_width="26dp"
-        android:layout_height="36dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="8dp"
-        android:drawingCacheQuality="auto"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/presence_offline" />
+        <EditText
+            android:id="@+id/start_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/search_edit_bg"
+            android:drawableLeft="@android:drawable/ic_menu_compass"
+            android:drawablePadding="16dp"
+            android:focusableInTouchMode="true"
+            android:hint="@string/input_default_start"
+            android:maxLines="1"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textAlignment="textStart"
+            android:textColorHint="#9B9B9B"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/start_edit_delete"
+            android:layout_width="26dp"
+            android:layout_height="36dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="8dp"
+            android:drawingCacheQuality="auto"
+            android:visibility="gone"
+            app:srcCompat="@android:drawable/presence_offline" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/search_edit_bg"
+            android:drawableLeft="@android:drawable/ic_menu_search"
+            android:drawablePadding="16dp"
+            android:focusedByDefault="true"
+            android:focusableInTouchMode="true"
+            android:hint="@string/input_cross_location"
+            android:maxLines="1"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textAlignment="textStart"
+            android:textColorHint="#9B9B9B"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/search_edit_delete"
+            android:layout_width="26dp"
+            android:layout_height="36dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="8dp"
+            android:drawingCacheQuality="auto"
+            android:visibility="gone"
+            app:srcCompat="@android:drawable/presence_offline" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/start_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:text="@string/start_aps" />
 
 </LinearLayout>

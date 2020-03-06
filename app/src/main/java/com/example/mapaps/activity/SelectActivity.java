@@ -9,12 +9,20 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.core.SuggestionCity;
+import com.amap.api.services.geocoder.GeocodeResult;
+import com.amap.api.services.geocoder.GeocodeSearch;
+import com.amap.api.services.geocoder.RegeocodeResult;
+import com.amap.api.services.help.Inputtips;
+import com.amap.api.services.help.InputtipsQuery;
+import com.amap.api.services.help.Tip;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 import com.example.mapaps.R;
@@ -32,17 +40,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import static com.amap.api.services.core.AMapException.CODE_AMAP_SUCCESS;
 
-public class SelectActivity extends AppCompatActivity implements TextWatcher, PoiSearch.OnPoiSearchListener, Common_Data {
+public class SelectActivity extends AppCompatActivity implements TextWatcher, Inputtips.InputtipsListener,PoiSearch.OnPoiSearchListener, GeocodeSearch.OnGeocodeSearchListener, Common_Data {
     //POI参数
-    private PoiSearch.Query query;// Poi查询条件类
-    private ArrayList<PoiItem> poiItems;// poi数据
+    private PoiSearch.Query query;
+    private ArrayList<PoiItem> poiItems;
     private LatLonPoint user_loc=null;
+    private LatLonPoint goal_loc=null;
     private String city_code=null;
+    private InputtipsQuery inputtipsQuery;
+    private Intent loc_intent=null;
+    private GeocodeSearch geocodeSearch;
+    private boolean start_flag=false;
+    private boolean input_flag=true;
 
-    //搜索框
+    //顶部搜索框
+    private EditText startText=null;
+    private ImageView start_delete_btn=null;
     private EditText inputText=null;
     private ImageView delete_btn=null;
+    private Button start_btn=null;
     private RecyclerView POI_list=null;
+
 
 
     @Override
@@ -56,12 +74,46 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
 
         poiItems=new ArrayList<PoiItem>();
 
+        geocodeSearch=new GeocodeSearch(this);
+        geocodeSearch.setOnGeocodeSearchListener(this);
+
         POI_list=findViewById(R.id.search_list_view);
         POI_list.setLayoutManager(new LinearLayoutManager(this));
 
+        startText=findViewById(R.id.start_edit_text);
+        startText.addTextChangedListener(this);
+        startText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(v.getId()==startText.getId()) {
+                    Toast.makeText(SelectActivity.this,"set start",Toast.LENGTH_SHORT).show();
+                    start_flag=true;
+                    input_flag=false;
+                }
+            }
+        });
+
+        start_delete_btn=findViewById(R.id.start_edit_delete);
+        start_delete_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startText.setText("");
+                start_delete_btn.setVisibility(View.GONE);
+            }
+        });
 
         inputText=findViewById(R.id.search_edit_text);
         inputText.addTextChangedListener(this);
+        inputText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(v.getId()==inputText.getId()) {
+                    Toast.makeText(SelectActivity.this,"set input",Toast.LENGTH_SHORT).show();
+                    input_flag=true;
+                    start_flag=false;
+                }
+            }
+        });
 
         delete_btn=findViewById(R.id.search_edit_delete);
         delete_btn.setOnClickListener(new View.OnClickListener() {
@@ -69,6 +121,21 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
             public void onClick(View v) {
                 inputText.setText("");
                 delete_btn.setVisibility(View.GONE);
+            }
+        });
+
+        start_btn=(Button)findViewById(R.id.start_btn);
+        start_btn.setClickable(false);
+        start_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(loc_intent!=null) {
+                    startActivity(loc_intent);
+                    finish();
+                }
+                else {
+                    Toast.makeText(SelectActivity.this,"请输入目的地",Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -103,6 +170,23 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
         poiSearch.searchPOIAsyn();
     }
 
+    //开始列举推荐列表
+    protected void doInputTipsQuery(String key,String code){
+        inputtipsQuery=new InputtipsQuery(key,code);
+        //是否限制在当前城市
+        if(!code.isEmpty()){
+            inputtipsQuery.setCityLimit(true);
+        }
+        else {
+            inputtipsQuery.setCityLimit(false);
+        }
+        //初始化监听器
+        Inputtips inputtips=new Inputtips(SelectActivity.this,inputtipsQuery);
+        inputtips.setInputtipsListener(this);
+
+        inputtips.requestInputtipsAsyn();
+    }
+
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -111,12 +195,32 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         String keyWord = String.valueOf(s);
+        boolean start_flag=startText.getText().length()>0;
+        boolean search_flag=inputText.getText().length()>0;
         if(!"".equals(keyWord)){
-            delete_btn.setVisibility(View.VISIBLE);
-            doSearchQuery(keyWord);
+            if(start_flag) {
+                start_delete_btn.setVisibility(View.VISIBLE);
+            }
+            else if(search_flag) {
+                delete_btn.setVisibility(View.VISIBLE);
+            }
+            if(search_flag){
+                start_btn.setClickable(true);
+                start_btn.setFocusable(true);
+            }
+            doInputTipsQuery(keyWord,this.city_code);
         }
         else {
-            delete_btn.setVisibility(View.GONE);
+            if(!start_flag) {
+                start_delete_btn.setVisibility(View.GONE);
+            }
+            else if(!search_flag) {
+                delete_btn.setVisibility(View.GONE);
+            }
+            if(!search_flag){
+                start_btn.setClickable(false);
+                start_btn.setFocusable(false);
+            }
         }
     }
 
@@ -145,7 +249,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
                     // 取得第一页的poiitem数据，页数从数字0开始
                     poiItems = poiResult.getPois();
 
-                    //todo 显示搜索结果
                     //解析获取到的PoiItem列表
                     POI_list.setAdapter(new CommonAdapter<PoiItem>(this,R.layout.search_list_item,poiItems) {
                         @Override
@@ -160,6 +263,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
                             final String text = poiItem.getSnippet();
                             Log.e("test1","地点："+title+"\n地名："+text+"\n坐标：（"+lon+","+lat+"）");
                             holder.setText(R.id.textView,"地点："+title+"\n地名："+text);
+                            holder.setIsRecyclable(true);
                             holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -171,12 +275,12 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
                                     bundle.putDouble("slat",user_loc.getLatitude());
                                     bundle.putDouble("elon",lon);
                                     bundle.putDouble("elat",lat);
-                                    //todo 回传地点信息
-                                    Intent intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
-                                    intent.putExtras(bundle);
 
-                                    startActivity(intent);
-                                    finish();
+                                    //todo 回传地点信息
+                                    SelectActivity.this.loc_intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
+                                    SelectActivity.this.loc_intent.putExtras(bundle);
+
+                                    inputText.setText(title);
                                 }
                             });
                         }
@@ -192,6 +296,75 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, Po
 
     @Override
     public void onPoiItemSearched(com.amap.api.services.core.PoiItem poiItem, int i) {
+
+    }
+
+    @Override
+    public void onGetInputtips(List<Tip> list, int i) {
+        //todo 接收推荐列表
+        if(i==CODE_AMAP_SUCCESS){
+            if(!list.isEmpty()){
+                Log.e("test","总计"+list.size()+"条记录\n"+"城市为："+city_code);
+                //解析获取到的PoiItem列表
+                POI_list.setAdapter(new CommonAdapter<Tip>(this,R.layout.search_list_item,list) {
+                    @Override
+                    protected void convert(final ViewHolder holder, Tip tip, int position) {
+                        //判断地点是否存在
+                        if (tip.getPoint() == null && tip.getPoiID() == null) {
+                            doSearchQuery("");
+                            return;
+                        } else if (tip.getPoint() == null) {
+                            return;
+                        }
+                        //获取经纬度对象
+                        LatLonPoint llp = tip.getPoint();
+                        final double lon = llp.getLongitude();
+                        final double lat = llp.getLatitude();
+                        //返回POI的名称
+                        final String title = tip.getName();
+                        //返回POI的地址
+                        final String text = tip.getAddress();
+                        Log.e("test1", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
+                        holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text);
+                        //holder.setIsRecyclable(true);
+                        holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if(start_flag) {
+                                    startText.setText(title);
+                                    user_loc=new LatLonPoint(lat,lon);
+                                }
+                                else if(input_flag) {
+                                    inputText.setText(title);
+                                    goal_loc=new LatLonPoint(lat,lon);
+                                }
+
+                                Bundle bundle = new Bundle();
+                                bundle.putString("name", title);
+                                bundle.putString("detail", text);
+                                bundle.putString("city_code", city_code);
+                                bundle.putDouble("slon", user_loc.getLongitude());
+                                bundle.putDouble("slat", user_loc.getLatitude());
+                                bundle.putDouble("elon", goal_loc.getLongitude());
+                                bundle.putDouble("elat", goal_loc.getLatitude());
+                                //回传地点信息
+                                SelectActivity.this.loc_intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
+                                SelectActivity.this.loc_intent.putExtras(bundle);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onRegeocodeSearched(RegeocodeResult regeocodeResult, int i) {
+
+    }
+
+    @Override
+    public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
 
     }
 }

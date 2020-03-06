@@ -20,8 +20,8 @@
 
     <com.amap.api.maps.MapView
         android:id="@+id/aps_bot_view"
-        android:layout_width="410dp"
-        android:layout_height="678dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/nav_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -32,7 +32,7 @@
             android:id="@+id/start_aps_Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center|start|right"
+            android:layout_gravity="bottom|start|right"
             android:backgroundTint="@color/cardview_light_background"
             android:clickable="true"
             app:rippleColor="#2196F3"

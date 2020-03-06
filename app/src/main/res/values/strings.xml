@@ -6,6 +6,9 @@
     <string name="biking_route">骑行</string>
     <string name="walking_route">步行</string>
     <string name="input_cross_location">请输入目的地</string>
+    <string name="input_default_start">当前位置</string>
+    <string name="start_aps">开始</string>
+    <string name="input_location">查询地点，公交，路线规划</string>
     <string name="title_activity_aps__tab_">Aps_Tab_Activity</string>
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
