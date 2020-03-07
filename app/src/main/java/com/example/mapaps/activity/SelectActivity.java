@@ -61,8 +61,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     private Button start_btn=null;
     private RecyclerView POI_list=null;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

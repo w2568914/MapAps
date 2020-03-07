@@ -1,10 +1,12 @@
 package com.example.mapaps;
 
 import android.app.Application;
+import android.widget.Toast;
 
 import com.example.mapaps.activity.MainActivity;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
+import com.tencent.bugly.beta.interfaces.BetaPatchListener;
 
 public class MyApplication extends Application {
     public static final String APP_ID = "3bfc25f272";
@@ -40,8 +42,47 @@ public class MyApplication extends Application {
          * 只允许在MainActivity上显示更新弹窗，其他activity上不显示弹窗; 不设置会默认所有activity都可以显示弹窗;
          */
         Beta.canShowUpgradeActs.add(MainActivity.class);
+        /**
+         * 设置升级路径监听器;
+         */
+        Beta.betaPatchListener=new BetaPatchListener() {
+            @Override
+            public void onPatchReceived(String s) {
+
+            }
+
+            @Override
+            public void onDownloadReceived(long l, long l1) {
+
+            }
+
+            @Override
+            public void onDownloadSuccess(String s) {
+                Toast.makeText(getApplicationContext(),"下载成功："+s,Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDownloadFailure(String s) {
+                Toast.makeText(getApplicationContext(),"下载失败："+s,Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onApplySuccess(String s) {
+
+            }
+
+            @Override
+            public void onApplyFailure(String s) {
+
+            }
+
+            @Override
+            public void onPatchRollback() {
+
+            }
+        };
 
         //buggly初始化
-        Bugly.init(getApplicationContext(), APP_ID, true);
+        Bugly.init(this, APP_ID, true);
     }
 }
