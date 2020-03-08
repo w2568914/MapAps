@@ -173,11 +173,11 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             fromAndTo = new RouteSearch.FromAndTo(start, end);
         }
         routeSearch.setRouteSearchListener(this);
-        //todo 测试数据
+        //测试数据
         Log.e("test","起点坐标为：（"+start.getLongitude()+","+start.getLatitude()
                 +"）\n终点坐标为：（"+end.getLongitude()+","+end.getLatitude()+"）"
                 +"\n code为："+aps_code);
-        //todo 分类规划
+        //分类规划
         switch(Code){
             case Common_Data.Drive_code:
                 RouteSearch.DriveRouteQuery driveRouteQuery = new RouteSearch.DriveRouteQuery(
@@ -231,7 +231,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                     }
                 }
                 break;
-            //todo 设计其他路线模式
             case Common_Data.Bike_code:
                 RideRouteResult rideRouteResult=(RideRouteResult)result;
                 RidePath ridePath=rideRouteResult.getPaths().get(0);
@@ -262,7 +261,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                             latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
                         }
                     }
-                    //todo 增加绘制步行路线
+                    //todo 增加绘制公交-步行路线
                 }
                 break;
             default:
@@ -326,10 +325,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             float distance=busPath.getDistance()/1000;
             //时间
             long duration=busPath.getDuration()/60;
-            //todo 显示信息
-            Log.e("test","花费："+bus_cost+
-                    "\n距离/公里"+distance+
-                    "\n时间/分"+duration);
+
             drawRouteToMap(busRouteResult,Common_Data.Bus_code);
         }
         else {
@@ -354,12 +350,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             float distance=drivePath.getDistance()/1000;
             //时间
             long duration=drivePath.getDuration()/60;
-            //todo 显示信息
-            Log.e("test","策略："+strategy+
-                    "\n交通信号灯数量/个"+clights+
-                    "\n距离/公里"+distance+
-                    "\n时间/分"+duration);
-            //todo 调用函数进行路线绘制
+            //调用函数进行路线绘制
             drawRouteToMap(driveRouteResult,Common_Data.Drive_code);
         }
         else {
@@ -378,8 +369,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             float distance=walkPath.getDistance()/1000;
             //时间
             long duration=walkPath.getDuration()/60;
-            //todo 显示信息
-            Log.e("test", "距离/公里"+distance+ "\n时间/分"+duration);
+
             drawRouteToMap(walkRouteResult,Common_Data.Walk_code);
         }
         else {
@@ -404,8 +394,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             float distance=ridePath.getDistance()/1000;
             //时间
             long duration=ridePath.getDuration()/60;
-            //todo 显示信息
-            Log.e("test", "距离/公里"+distance+ "\n时间/分"+duration);
+
             drawRouteToMap(rideRouteResult,Common_Data.Bike_code);
         }
         else {

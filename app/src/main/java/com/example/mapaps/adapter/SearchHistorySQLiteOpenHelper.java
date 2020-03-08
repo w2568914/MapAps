@@ -15,7 +15,7 @@ public class SearchHistorySQLiteOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table history(id integer primary key autoincrement,name varchar(200),detail varchar(200),lon double,lat double)");
+        db.execSQL("create table SearchHistroy(id integer primary key autoincrement,name varchar(200),detail varchar(200),lon double,lat double)");
     }
 
     @Override

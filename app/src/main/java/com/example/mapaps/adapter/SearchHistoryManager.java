@@ -6,6 +6,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.help.Tip;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +89,7 @@ public class SearchHistoryManager {
         List<String> stringList=new ArrayList<>();
 
         liteDatabase=searchHistorySQLiteOpenHelper.getReadableDatabase();
-        Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
+        @SuppressLint("Recycle") Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
 
         while (cursor.moveToNext()){
             String name = cursor.getString(cursor.getColumnIndexOrThrow(key));
@@ -102,7 +105,7 @@ public class SearchHistoryManager {
         List<Double> stringList=new ArrayList<>();
 
         liteDatabase=searchHistorySQLiteOpenHelper.getReadableDatabase();
-        Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
+        @SuppressLint("Recycle") Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
 
         while (cursor.moveToNext()){
             Double name = cursor.getDouble(cursor.getColumnIndexOrThrow(key));
@@ -112,4 +115,25 @@ public class SearchHistoryManager {
         liteDatabase.close();
         return stringList;
     }
+
+    //获取指定元素全部记录
+    public List<Tip> getAllTipsRecords(){
+        //todo 怀疑返回list错误
+        List<Tip> tipList= new ArrayList<>();
+        List<String> detail_list=getAllStringRecorsByKey("detail");
+        List<String> name_list=getAllStringRecorsByKey("name");
+        List<Double> lon_list=getAllDoubleRecorsByKey("lon");
+        List<Double> lat_list=getAllDoubleRecorsByKey("lat");
+
+        for(int i=0;i<name_list.size();i++){
+            Tip tip=new Tip();
+            tip.setName(name_list.get(i));
+            tip.setAddress(detail_list.get(i));
+            tip.setPostion(new LatLonPoint(lat_list.get(i),lon_list.get(i)));
+            tipList.add(tip);
+        }
+
+        return tipList;
+    }
+
 }

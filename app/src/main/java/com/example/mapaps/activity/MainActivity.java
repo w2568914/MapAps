@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
         Select_btn_bom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //todo 打开aps界面
+                //跳转到搜索界面
                 Bundle bundle=new Bundle();
                 bundle.putDouble("slon",user_loc.getLongitude());
                 bundle.putDouble("slat",user_loc.getLatitude());
