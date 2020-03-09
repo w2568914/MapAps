@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.help.Tip;
@@ -30,7 +31,7 @@ public class SearchHistoryManager {
 
         liteDatabase=searchHistorySQLiteOpenHelper.getReadableDatabase();
         @SuppressLint("Recycle") Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
-
+        cursor.moveToFirst();
         while(cursor.moveToNext()){
             if(record.equals(cursor.getColumnIndexOrThrow(key))){
                 isExist_flag=true;
@@ -77,10 +78,26 @@ public class SearchHistoryManager {
         liteDatabase.close();
     }
 
+    //添加记录（Tip）
+    public void addRecord(String name,String detail,Double lat,Double lon){
+        if(!isExist("name",name)){
+            liteDatabase=searchHistorySQLiteOpenHelper.getWritableDatabase();
+            ContentValues values=new ContentValues();
+            values.put("name",name);
+            values.put("detail",detail);
+            values.put("lat",lat);
+            values.put("lon",lon);
+            Log.e("test2","name；"+name+"\nlon:"+lon+" lat:"+lat);
+            //liteDatabase.insert(tableName,null,values);
+            liteDatabase.replace(tableName,null,values);
+            liteDatabase.close();
+        }
+    }
+
     //删除全部记录
     public void deleteAllRecords(){
         liteDatabase=searchHistorySQLiteOpenHelper.getWritableDatabase();
-        liteDatabase.execSQL("delete from"+tableName);
+        liteDatabase.execSQL("delete from "+tableName);
         liteDatabase.close();
     }
 
@@ -90,7 +107,7 @@ public class SearchHistoryManager {
 
         liteDatabase=searchHistorySQLiteOpenHelper.getReadableDatabase();
         @SuppressLint("Recycle") Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
-
+        cursor.moveToFirst();
         while (cursor.moveToNext()){
             String name = cursor.getString(cursor.getColumnIndexOrThrow(key));
             stringList.add(name);
@@ -106,7 +123,7 @@ public class SearchHistoryManager {
 
         liteDatabase=searchHistorySQLiteOpenHelper.getReadableDatabase();
         @SuppressLint("Recycle") Cursor cursor=liteDatabase.query(tableName,null,null,null,null,null,null);
-
+        cursor.moveToFirst();
         while (cursor.moveToNext()){
             Double name = cursor.getDouble(cursor.getColumnIndexOrThrow(key));
             stringList.add(name);
@@ -130,6 +147,7 @@ public class SearchHistoryManager {
             tip.setName(name_list.get(i));
             tip.setAddress(detail_list.get(i));
             tip.setPostion(new LatLonPoint(lat_list.get(i),lon_list.get(i)));
+            Log.e("test2", "地点：" + tip.getName() + "\n地名：" + tip.getAddress() + "\n坐标：（" + tip.getPoint().getLongitude() + "," + tip.getPoint().getLatitude() + "）");
             tipList.add(tip);
         }
 

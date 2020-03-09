@@ -12,14 +12,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.core.SuggestionCity;
-import com.amap.api.services.geocoder.GeocodeResult;
-import com.amap.api.services.geocoder.GeocodeSearch;
-import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.help.Inputtips;
 import com.amap.api.services.help.InputtipsQuery;
 import com.amap.api.services.help.Tip;
@@ -30,27 +28,28 @@ import com.example.mapaps.adapter.Common_Data;
 import com.example.mapaps.adapter.SearchHistoryManager;
 import com.zhy.adapter.recyclerview.CommonAdapter;
 import com.zhy.adapter.recyclerview.base.ViewHolder;
+import com.zhy.adapter.recyclerview.wrapper.HeaderAndFooterWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import static com.amap.api.services.core.AMapException.CODE_AMAP_SUCCESS;
 
-public class SelectActivity extends AppCompatActivity implements TextWatcher, Inputtips.InputtipsListener,PoiSearch.OnPoiSearchListener, GeocodeSearch.OnGeocodeSearchListener, Common_Data {
+public class SelectActivity extends AppCompatActivity implements TextWatcher, Inputtips.InputtipsListener,PoiSearch.OnPoiSearchListener, Common_Data {
     //POI参数
     private PoiSearch.Query query;
     private ArrayList<PoiItem> poiItems;
     private LatLonPoint user_loc=null;
     private LatLonPoint goal_loc=null;
+    private Tip loc=null;
     private String city_code=null;
-    private InputtipsQuery inputtipsQuery;
     private Intent loc_intent=null;
-    private GeocodeSearch geocodeSearch;
     private boolean start_flag=false;
     private boolean input_flag=true;
 
@@ -78,12 +77,13 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         searchHistoryManager=new SearchHistoryManager(this,DbTableName);
 
         poiItems=new ArrayList<PoiItem>();
-
-        geocodeSearch=new GeocodeSearch(this);
-        geocodeSearch.setOnGeocodeSearchListener(this);
+        loc=new Tip();
 
         POI_list=findViewById(R.id.search_list_view);
         POI_list.setLayoutManager(new LinearLayoutManager(this));
+
+        getSearchRecord();
+        //searchHistoryManager.deleteAllRecords();
 
         startText=findViewById(R.id.start_edit_text);
         startText.addTextChangedListener(this);
@@ -94,6 +94,12 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     Toast.makeText(SelectActivity.this,"set start",Toast.LENGTH_SHORT).show();
                     start_flag=true;
                     input_flag=false;
+                    try {
+                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                                loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
+                    }catch (Exception e){
+                        Log.e("test51",e.getMessage());
+                    }
                 }
             }
         });
@@ -116,6 +122,12 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     Toast.makeText(SelectActivity.this,"set input",Toast.LENGTH_SHORT).show();
                     input_flag=true;
                     start_flag=false;
+                    try {
+                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                                loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
+                    }catch (Exception e){
+                        Log.e("test61",e.getMessage());
+                    }
                 }
             }
         });
@@ -137,7 +149,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 if(loc_intent!=null) {
                     //加入历史记录
                     if(!searchHistoryManager.isExist("name",loc_intent.getStringExtra("name"))){
-                       addSearchRecord(loc_intent);
+                       addSearchRecord();
                     }
 
                     startActivity(loc_intent);
@@ -155,7 +167,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             }
         }
-        getSearchRecord();
+
     }
 
     //开始进行poi搜索
@@ -182,7 +194,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
 
     //开始列举推荐列表
     protected void doInputTipsQuery(String key,String code){
-        inputtipsQuery=new InputtipsQuery(key,code);
+        InputtipsQuery inputtipsQuery = new InputtipsQuery(key, code);
         //是否限制在当前城市
         if(!code.isEmpty()){
             inputtipsQuery.setCityLimit(true);
@@ -191,7 +203,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             inputtipsQuery.setCityLimit(false);
         }
         //初始化监听器
-        Inputtips inputtips=new Inputtips(SelectActivity.this,inputtipsQuery);
+        Inputtips inputtips=new Inputtips(SelectActivity.this, inputtipsQuery);
         inputtips.setInputtipsListener(this);
 
         inputtips.requestInputtipsAsyn();
@@ -199,8 +211,9 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
 
     //获取历史记录
     protected void getSearchRecord(){
-        List<Tip> list=searchHistoryManager.getAllTipsRecords();
-        //todo 适配器莫名乱序
+        final List<Tip> list=searchHistoryManager.getAllTipsRecords();
+
+        //todo 清除搜索历史功能失效
         POI_list.setAdapter(new CommonAdapter<Tip>(this,R.layout.search_list_item,list) {
             @Override
             protected void convert(final ViewHolder holder, Tip tip, int position) {
@@ -234,13 +247,17 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                         }
 
                         Bundle bundle = new Bundle();
-                        bundle.putString("name", title);
-                        bundle.putString("detail", text);
-                        bundle.putString("city_code", city_code);
-                        bundle.putDouble("slon", user_loc.getLongitude());
-                        bundle.putDouble("slat", user_loc.getLatitude());
-                        bundle.putDouble("elon", goal_loc.getLongitude());
-                        bundle.putDouble("elat", goal_loc.getLatitude());
+                        try {
+                            bundle.putString("name", title);
+                            bundle.putString("detail", text);
+                            bundle.putString("city_code", city_code);
+                            bundle.putDouble("slon", user_loc.getLongitude());
+                            bundle.putDouble("slat", user_loc.getLatitude());
+                            bundle.putDouble("elon", goal_loc.getLongitude());
+                            bundle.putDouble("elat", goal_loc.getLatitude());
+                        }catch (Exception e){
+                            Log.e("test",e.getMessage());
+                        }
                         //回传地点信息
                         SelectActivity.this.loc_intent = new Intent(SelectActivity.this, Aps_Bottom_Activity.class);
                         SelectActivity.this.loc_intent.putExtras(bundle);
@@ -248,14 +265,37 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 });
             }
         });
+
+        final HeaderAndFooterWrapper headerAndFooterWrapper=new HeaderAndFooterWrapper(POI_list.getAdapter());
+        CardView foot_View=new CardView(this);
+        final TextView textView=new TextView(this);
+        foot_View.addView(textView);
+        textView.setHint("清除历史记录");
+        //todo 修改宽度后，控件销毁
+        textView.setWidth(RecyclerView.LayoutParams.MATCH_PARENT);
+
+        foot_View.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchHistoryManager.deleteAllRecords();
+                textView.setHint("没有历史记录");
+                list.clear();
+                headerAndFooterWrapper.notifyItemRangeRemoved(0,list.size());
+                headerAndFooterWrapper.notifyDataSetChanged();
+                Toast.makeText(SelectActivity.this,"已清除全部历史记录",Toast.LENGTH_SHORT).show();
+            }
+        });
+        headerAndFooterWrapper.addFootView(foot_View);
+
+        POI_list.setAdapter(headerAndFooterWrapper);
+        headerAndFooterWrapper.notifyDataSetChanged();
     }
 
     //添加搜索历史
-    protected void addSearchRecord(Intent intent){
-        searchHistoryManager.addStringRecord("name",intent.getStringExtra("name"));
-        searchHistoryManager.addStringRecord("detail",intent.getStringExtra("detail"));
-        searchHistoryManager.addDoubleRecord("lon",intent.getDoubleExtra("lon",0));
-        searchHistoryManager.addDoubleRecord("lat",intent.getDoubleExtra("lat",0));
+    protected void addSearchRecord(){
+        Log.e("test","加入数据库数据：\n name："+loc.getName()+"\ndetail:"+loc.getAddress());
+        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
     }
 
     @Override
@@ -325,27 +365,33 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                         @Override
                         protected void convert(ViewHolder holder, PoiItem poiItem, int position) {
                             //获取经纬度对象
-                            LatLonPoint llp = poiItem.getLatLonPoint();
-                            final double lon = llp.getLongitude();
-                            final double lat = llp.getLatitude();
+                            loc.setName(poiItem.getTitle());
+                            loc.setAddress(poiItem.getSnippet());
+                            loc.setPostion(poiItem.getLatLonPoint());
+                            final double lon = loc.getPoint().getLongitude();
+                            final double lat = loc.getPoint().getLatitude();
                             //返回POI的名称
-                            final String title = poiItem.getTitle();
+                            final String title = loc.getName();
                             //返回POI的地址
-                            final String text = poiItem.getSnippet();
-                            Log.e("test1","地点："+title+"\n地名："+text+"\n坐标：（"+lon+","+lat+"）");
+                            final String text = loc.getAddress();
+                            Log.e("test11","地点："+title+"\n地名："+text+"\n坐标：（"+lon+","+lat+"）");
                             holder.setText(R.id.textView,"地点："+title+"\n地名："+text);
                             holder.setIsRecyclable(true);
                             holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Bundle bundle=new Bundle();
-                                    bundle.putString("name",title);
-                                    bundle.putString("detail",text);
-                                    bundle.putString("city_code",city_code);
-                                    bundle.putDouble("slon",user_loc.getLongitude());
-                                    bundle.putDouble("slat",user_loc.getLatitude());
-                                    bundle.putDouble("elon",lon);
-                                    bundle.putDouble("elat",lat);
+                                    try {
+                                        bundle.putString("name", title);
+                                        bundle.putString("detail", text);
+                                        bundle.putString("city_code", city_code);
+                                        bundle.putDouble("slon", user_loc.getLongitude());
+                                        bundle.putDouble("slat", user_loc.getLatitude());
+                                        bundle.putDouble("elon",lon);
+                                        bundle.putDouble("elat",lat);
+                                    }catch (Exception e){
+                                        Log.e("test",e.getMessage());
+                                    }
 
                                     //回传地点信息
                                     SelectActivity.this.loc_intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
@@ -388,14 +434,14 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                             return;
                         }
                         //获取经纬度对象
-                        LatLonPoint llp = tip.getPoint();
-                        final double lon = llp.getLongitude();
-                        final double lat = llp.getLatitude();
+                        loc = tip;
+                        final double lon = loc.getPoint().getLongitude();
+                        final double lat = loc.getPoint().getLatitude();
                         //返回POI的名称
-                        final String title = tip.getName();
+                        final String title = loc.getName();
                         //返回POI的地址
-                        final String text = tip.getAddress();
-                        Log.e("test1", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
+                        final String text = loc.getAddress();
+                        Log.e("test12", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
                         holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text);
                         //holder.setIsRecyclable(true);
                         holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
@@ -411,13 +457,18 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                                 }
 
                                 Bundle bundle = new Bundle();
-                                bundle.putString("name", title);
-                                bundle.putString("detail", text);
-                                bundle.putString("city_code", city_code);
-                                bundle.putDouble("slon", user_loc.getLongitude());
-                                bundle.putDouble("slat", user_loc.getLatitude());
-                                bundle.putDouble("elon", goal_loc.getLongitude());
-                                bundle.putDouble("elat", goal_loc.getLatitude());
+                                try {
+                                    bundle.putString("name", title);
+                                    bundle.putString("detail", text);
+                                    bundle.putString("city_code", city_code);
+                                    bundle.putDouble("slon", user_loc.getLongitude());
+                                    bundle.putDouble("slat", user_loc.getLatitude());
+                                    bundle.putDouble("elon", goal_loc.getLongitude());
+                                    bundle.putDouble("elat", goal_loc.getLatitude());
+                                }catch (Exception e){
+                                    Log.e("test",e.getMessage());
+                                }
+
                                 //回传地点信息
                                 SelectActivity.this.loc_intent=new Intent(SelectActivity.this,Aps_Bottom_Activity.class);
                                 SelectActivity.this.loc_intent.putExtras(bundle);
@@ -429,14 +480,5 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         }
     }
 
-    @Override
-    public void onRegeocodeSearched(RegeocodeResult regeocodeResult, int i) {
-
-    }
-
-    @Override
-    public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
-
-    }
 }
 
