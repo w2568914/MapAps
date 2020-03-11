@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
         mMapView = (MapView) findViewById(R.id.map);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
         mMapView.onCreate(savedInstanceState);
+        checkPer();
         //初始化地图组件
         init();
     }
@@ -127,25 +128,6 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
 
     //初始化定位
     private void initLoc() {
-        //  SDK在Android 6.0以上的版本需要进行运行检测的动态权限如下：
-        //    Manifest.permission.ACCESS_COARSE_LOCATION,
-        //    Manifest.permission.ACCESS_FINE_LOCATION,
-        //    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        //    Manifest.permission.READ_EXTERNAL_STORAGE,
-        //    Manifest.permission.READ_PHONE_STATE
-
-        //动态检查定位及内存权限
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //申请WRITE_EXTERNAL_STORAGE权限
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
-        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //申请WRITE_EXTERNAL_STORAGE权限
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
-        }
         //初始化定位
         mLocationClient = new AMapLocationClient(getApplicationContext());
         //设置定位回调监听
@@ -168,6 +150,29 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
         mLocationClient.setLocationOption(mLocationOption);
         //启动定位
         mLocationClient.startLocation();
+    }
+
+    //检查权限
+    private void checkPer(){
+        //  SDK在Android 6.0以上的版本需要进行运行检测的动态权限如下：
+        //    Manifest.permission.ACCESS_COARSE_LOCATION,
+        //    Manifest.permission.ACCESS_FINE_LOCATION,
+        //    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        //    Manifest.permission.READ_EXTERNAL_STORAGE,
+        //    Manifest.permission.READ_PHONE_STATE
+
+        //动态检查定位及内存权限
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            //申请WRITE_EXTERNAL_STORAGE权限
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            //申请WRITE_EXTERNAL_STORAGE权限
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
+        }
     }
 
     @Override

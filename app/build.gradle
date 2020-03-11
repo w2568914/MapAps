@@ -42,6 +42,10 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui:2.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     implementation 'com.android.support:support-v4:28.0.0'
+    // For developers using AndroidX in their applications
+    implementation 'pub.devrel:easypermissions:3.0.0'
+    // For developers using the Android Support Library
+    implementation 'pub.devrel:easypermissions:2.0.1'
     //导航组件
     implementation 'com.amap.api:navi-3dmap:latest.integration'
     //定位功能
