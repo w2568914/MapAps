@@ -46,6 +46,10 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     // For developers using the Android Support Library
     implementation 'pub.devrel:easypermissions:2.0.1'
+    //Gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+    //选择器
+    implementation 'com.contrarywind:Android-PickerView:4.1.9'
     //导航组件
     implementation 'com.amap.api:navi-3dmap:latest.integration'
     //定位功能

@@ -3,6 +3,7 @@ package com.example.mapaps.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -18,14 +19,25 @@ import android.widget.Toast;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.core.SuggestionCity;
+import com.amap.api.services.geocoder.GeocodeQuery;
+import com.amap.api.services.geocoder.GeocodeResult;
+import com.amap.api.services.geocoder.GeocodeSearch;
+import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.help.Inputtips;
 import com.amap.api.services.help.InputtipsQuery;
 import com.amap.api.services.help.Tip;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
+import com.bigkoo.pickerview.builder.OptionsPickerBuilder;
+import com.bigkoo.pickerview.listener.OnOptionsSelectListener;
+import com.bigkoo.pickerview.view.OptionsPickerView;
 import com.example.mapaps.R;
 import com.example.mapaps.adapter.Common_Data;
+import com.example.mapaps.adapter.GetGsonDataUnit;
+import com.example.mapaps.adapter.ProviceBean;
 import com.example.mapaps.adapter.SearchHistoryManager;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.zhy.adapter.recyclerview.CommonAdapter;
 import com.zhy.adapter.recyclerview.base.ViewHolder;
 import com.zhy.adapter.recyclerview.wrapper.HeaderAndFooterWrapper;
@@ -57,12 +69,18 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     private SearchHistoryManager searchHistoryManager;
     protected String DbTableName="SearchHistroy";
 
+    //城市数据
+    protected List<ProviceBean> proviceBeanList=new ArrayList<>();
+    protected ArrayList<ArrayList<String>> cityBeanArrayList=new ArrayList<>();
+    protected ArrayList<ArrayList<ArrayList<String>>> areaarrayList=new ArrayList<>();
+
     //顶部搜索框
     private EditText startText=null;
     private ImageView start_delete_btn=null;
     private EditText inputText=null;
     private ImageView delete_btn=null;
     private Button start_btn=null;
+    private Button city_chosen_btn=null;
     private RecyclerView POI_list=null;
 
     @Override
@@ -158,6 +176,14 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 else {
                     Toast.makeText(SelectActivity.this,"请输入目的地",Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        city_chosen_btn=findViewById(R.id.city_chosen);
+        city_chosen_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPickerView();
             }
         });
 
@@ -296,6 +322,84 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         Log.e("test","加入数据库数据：\n name："+loc.getName()+"\ndetail:"+loc.getAddress());
         searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
                 loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
+    }
+
+    //获取城市编码
+    private void getCity_code(String name){
+        GeocodeSearch geocodeSearch=new GeocodeSearch(SelectActivity.this);
+        geocodeSearch.setOnGeocodeSearchListener(new GeocodeSearch.OnGeocodeSearchListener() {
+            @Override
+            public void onRegeocodeSearched(RegeocodeResult regeocodeResult, int i) {
+
+            }
+
+            @Override
+            public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
+                if(i==CODE_AMAP_SUCCESS){
+                    city_code=geocodeResult.getGeocodeAddressList().get(0).getAdcode();
+                }
+            }
+        });
+        GeocodeQuery query=new GeocodeQuery(name,"");
+        geocodeSearch.getFromLocationNameAsyn(query);
+    }
+
+    //从文件中获取json数据
+    protected void transJson(){
+        //读取
+        String jsonstr=new GetGsonDataUnit().getJson(SelectActivity.this,"province.json");
+        //解析
+        Gson gson=new Gson();
+        proviceBeanList=gson.fromJson(jsonstr, new TypeToken<List<ProviceBean>>(){}.getType());
+        //分配数据
+        for(int i=0;i<proviceBeanList.size();i++){
+            ArrayList<String> citylist=new ArrayList<>();
+            ArrayList<ArrayList<String>> arealist=new ArrayList<>();
+            for(int j=0;j<proviceBeanList.get(i).getCity().size();j++){
+                citylist.add(proviceBeanList.get(i).getCity().get(j).getName());
+                ArrayList<String> city_area_list=new ArrayList<>();
+                if(proviceBeanList.get(i).getCity().get(j).getArea()==null
+                        ||proviceBeanList.get(i).getCity().get(j).getArea().size()==0){
+                    city_area_list.add(" ");
+                }
+                else {
+                    city_area_list.addAll(proviceBeanList.get(i).getCity().get(j).getArea());
+                }
+                arealist.add(city_area_list);
+            }
+            this.cityBeanArrayList.add(citylist);
+            this.areaarrayList.add(arealist);
+        }
+
+    }
+
+    //显示选择器
+    private void showPickerView(){
+        transJson();
+        OptionsPickerView optionsPickerView=new OptionsPickerBuilder(SelectActivity.this, new OnOptionsSelectListener() {
+            @Override
+            public void onOptionsSelect(int options1, int options2, int options3, View v) {
+                String tx=proviceBeanList.get(options1).getName()+
+                        cityBeanArrayList.get(options1).get(options2)+
+                        areaarrayList.get(options1).get(options2).get(options3);
+                Toast.makeText(SelectActivity.this,tx,Toast.LENGTH_SHORT).show();
+                getCity_code(tx);
+                city_chosen_btn.setText(cityBeanArrayList.get(options1).get(options2));
+            }
+        })
+                .setTitleText("选择城市")
+                .setDividerColor(Color.BLACK)
+                .setTextColorCenter(Color.BLACK)
+                .setContentTextSize(20)
+                .addOnCancelClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        city_code="";
+                    }
+                })
+                .build();
+        optionsPickerView.setPicker(proviceBeanList,cityBeanArrayList,areaarrayList);
+        optionsPickerView.show();
     }
 
     @Override
@@ -479,6 +583,5 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         }
     }
-
 }
 
