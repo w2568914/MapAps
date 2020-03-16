@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.amap.api.maps.AMap;
@@ -38,7 +39,6 @@ import com.example.mapaps.Dialog.APS_Fragment;
 import com.example.mapaps.R;
 import com.example.mapaps.adapter.Common_Data;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +110,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 R.id.drive_item,R.id.ride_item,R.id.walk_item,R.id.bus_item)
                 .build();
 
-        FloatingActionButton start_btn=findViewById(R.id.start_aps_Button);
+        Button start_btn=findViewById(R.id.start_aps_Button);
         start_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,6 +120,17 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 else {
                     Toast.makeText(Aps_Bottom_Activity.this,"本版本不支持公交导航",Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        Button re_select_btn=findViewById(R.id.return_aps_Button);
+        re_select_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(Aps_Bottom_Activity.this,SelectActivity.class);
+                intent.putExtras(getIntent().getExtras());
+                startActivity(intent);
+                finish();
             }
         });
     }

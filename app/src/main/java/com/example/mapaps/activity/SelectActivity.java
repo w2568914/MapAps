@@ -101,7 +101,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         POI_list.setLayoutManager(new LinearLayoutManager(this));
 
         getSearchRecord();
-        //searchHistoryManager.deleteAllRecords();
 
         startText=findViewById(R.id.start_edit_text);
         startText.addTextChangedListener(this);
