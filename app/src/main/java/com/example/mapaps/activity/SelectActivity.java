@@ -108,7 +108,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(v.getId()==startText.getId()) {
-                    Toast.makeText(SelectActivity.this,"set start",Toast.LENGTH_SHORT).show();
                     start_flag=true;
                     input_flag=false;
                     try {
@@ -136,7 +135,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(v.getId()==inputText.getId()) {
-                    Toast.makeText(SelectActivity.this,"set input",Toast.LENGTH_SHORT).show();
                     input_flag=true;
                     start_flag=false;
                     try {
@@ -319,8 +317,14 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     //添加搜索历史
     protected void addSearchRecord(){
         Log.e("test","加入数据库数据：\n name："+loc.getName()+"\ndetail:"+loc.getAddress());
-        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
-                loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
+        try{
+            searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                    loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
+        }catch (Exception e){
+            Log.e("test",e.getMessage());
+            Toast.makeText(SelectActivity.this, (CharSequence) e.getCause(),Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     //获取城市编码
