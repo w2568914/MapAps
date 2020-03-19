@@ -90,9 +90,9 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                     case R.id.walk_item:
                         aps_code=Common_Data.Walk_code;
                         break;
-                    case R.id.bus_item:
+                    /*case R.id.bus_item:
                         aps_code=Common_Data.Bus_code;
-                        break;
+                        break;*/
                     default:
                         throw new IllegalStateException("Unexpected value: " + menuItem.getItemId());
                 }
@@ -107,7 +107,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.drive_item,R.id.ride_item,R.id.walk_item,R.id.bus_item)
+                R.id.drive_item,R.id.ride_item,R.id.walk_item)
                 .build();
 
         Button start_btn=findViewById(R.id.start_aps_Button);

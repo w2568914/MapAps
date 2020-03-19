@@ -115,13 +115,18 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
             @Override
             public void onClick(View v) {
                 //跳转到搜索界面
-                Bundle bundle=new Bundle();
-                bundle.putDouble("slon",user_loc.getLongitude());
-                bundle.putDouble("slat",user_loc.getLatitude());
-                bundle.putString("city_code",city_code);
-               final Intent aps_intent=new Intent(MainActivity.this,SelectActivity.class);
-               aps_intent.putExtras(bundle);
-               startActivity(aps_intent);
+                try{
+                    Bundle bundle=new Bundle();
+                    bundle.putDouble("slon",user_loc.getLongitude());
+                    bundle.putDouble("slat",user_loc.getLatitude());
+                    bundle.putString("city_code",city_code);
+                    final Intent aps_intent=new Intent(MainActivity.this,SelectActivity.class);
+                    aps_intent.putExtras(bundle);
+                    startActivity(aps_intent);
+                }catch (Exception e){
+                    Log.e("test",e.getMessage());
+                }
+
             }
         });
     }

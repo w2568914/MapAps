@@ -17,9 +17,5 @@
         android:icon="@drawable/walk"
         android:title="@string/walking_route" />
 
-    <item
-        android:id="@+id/bus_item"
-        android:icon="@drawable/bus"
-        android:title="@string/busing_route" />
 
 </menu>

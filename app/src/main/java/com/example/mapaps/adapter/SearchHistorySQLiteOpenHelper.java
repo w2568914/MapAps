@@ -18,6 +18,7 @@ public class SearchHistorySQLiteOpenHelper extends SQLiteOpenHelper {
         db.execSQL("create table SearchHistroy(id integer primary key autoincrement," +
                 "name text  not null unique," +
                 "detail text not null," +
+                "dis text not null,"+
                 "lon real not null," +
                 "lat real not null)");
     }

@@ -1,6 +1,7 @@
 package com.example.mapaps.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -60,8 +62,9 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     private LatLonPoint user_loc=null;
     private LatLonPoint goal_loc=null;
     private Tip loc=null;
-    private String city_code=null;
+    private String city_code="";
     private Intent loc_intent=null;
+    private String key_word="";
     private boolean start_flag=false;
     private boolean input_flag=true;
 
@@ -82,6 +85,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     private Button start_btn=null;
     private Button city_chosen_btn=null;
     private RecyclerView POI_list=null;
+    private InputMethodManager inputMethodManager=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +94,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
 
         Intent intent=getIntent();
         user_loc=new LatLonPoint(intent.getDoubleExtra("slat",0),intent.getDoubleExtra("slon",0));
-        city_code=intent.getStringExtra("city_code");
+        //city_code=intent.getStringExtra("city_code");
 
         searchHistoryManager=new SearchHistoryManager(this,DbTableName);
+        inputMethodManager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
         poiItems=new ArrayList<PoiItem>();
         loc=new Tip();
@@ -111,7 +116,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     start_flag=true;
                     input_flag=false;
                     try {
-                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),loc.getDistrict(),
                                 loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
                     }catch (Exception e){
                         Log.e("test51",e.getMessage());
@@ -138,7 +143,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     input_flag=true;
                     start_flag=false;
                     try {
-                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+                        searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),loc.getDistrict(),
                                 loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
                     }catch (Exception e){
                         Log.e("test61",e.getMessage());
@@ -251,12 +256,17 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 LatLonPoint llp = tip.getPoint();
                 final double lon = llp.getLongitude();
                 final double lat = llp.getLatitude();
+                if(lon==0||lat==0){
+                    return;
+                }
                 //返回POI的名称
                 final String title = tip.getName();
                 //返回POI的地址
                 final String text = tip.getAddress();
-                Log.e("test1", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
-                holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text);
+                //返回POI的省份
+                final String dis=tip.getDistrict();
+                //Log.e("test1", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
+                holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text+"\n省区："+dis);
                 //holder.setIsRecyclable(true);
                 holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
                     @Override
@@ -318,7 +328,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     protected void addSearchRecord(){
         Log.e("test","加入数据库数据：\n name："+loc.getName()+"\ndetail:"+loc.getAddress());
         try{
-            searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),
+            searchHistoryManager.addRecord(loc.getName(),loc.getAddress(),loc.getDistrict(),
                     loc.getPoint().getLatitude(),loc.getPoint().getLongitude());
         }catch (Exception e){
             Log.e("test",e.getMessage());
@@ -379,6 +389,9 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     //显示选择器
     private void showPickerView(){
         transJson();
+        if(inputMethodManager!=null){
+            inputMethodManager.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(),0);
+        }
         OptionsPickerView optionsPickerView=new OptionsPickerBuilder(SelectActivity.this, new OnOptionsSelectListener() {
             @Override
             public void onOptionsSelect(int options1, int options2, int options3, View v) {
@@ -388,6 +401,8 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 Toast.makeText(SelectActivity.this,tx,Toast.LENGTH_SHORT).show();
                 getCity_code(tx);
                 city_chosen_btn.setText(cityBeanArrayList.get(options1).get(options2));
+                Log.e("test","keyword:"+key_word+"\ncity_code:"+city_code);
+                doInputTipsQuery(key_word,city_code);
             }
         })
                 .setTitleText("选择城市")
@@ -398,6 +413,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     @Override
                     public void onClick(View v) {
                         city_code="";
+                        city_chosen_btn.setText("选择城市");
                     }
                 })
                 .build();
@@ -426,6 +442,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 start_btn.setClickable(true);
                 start_btn.setFocusable(true);
             }
+            this.key_word=keyWord;
             doInputTipsQuery(keyWord,this.city_code);
         }
         else {
@@ -481,7 +498,9 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                             final String title = loc.getName();
                             //返回POI的地址
                             final String text = loc.getAddress();
-                            Log.e("test11","地点："+title+"\n地名："+text+"\n坐标：（"+lon+","+lat+"）");
+                            //返回POI的省份
+                            final String pro=loc.getAdcode();
+                            Log.e("test11","地点："+title+"\n地名："+text+"\n省份："+pro +"\n坐标：（"+lon+","+lat+"）");
                             holder.setText(R.id.textView,"地点："+title+"\n地名："+text);
                             holder.setIsRecyclable(true);
                             holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
@@ -548,8 +567,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                         final String title = loc.getName();
                         //返回POI的地址
                         final String text = loc.getAddress();
-                        Log.e("test12", "地点：" + title + "\n地名：" + text + "\n坐标：（" + lon + "," + lat + "）");
-                        holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text);
+                        //返回POI的省份
+                        final String pro=loc.getDistrict();
+                        Log.e("test12", "地点：" + title + "\n地名：" + text+"\n省份："+pro + "\n坐标：（" + lon + "," + lat + "）");
+                        holder.setText(R.id.textView, "地点：" + title + "\n地名：" + text+"\n省份："+pro );
                         //holder.setIsRecyclable(true);
                         holder.setOnClickListener(R.id.textView, new View.OnClickListener() {
                             @Override
