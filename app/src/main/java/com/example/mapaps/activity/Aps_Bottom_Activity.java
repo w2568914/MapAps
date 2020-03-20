@@ -22,14 +22,12 @@ import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.route.BusPath;
 import com.amap.api.services.route.BusRouteResult;
-import com.amap.api.services.route.BusStep;
 import com.amap.api.services.route.DrivePath;
 import com.amap.api.services.route.DriveRouteResult;
 import com.amap.api.services.route.DriveStep;
 import com.amap.api.services.route.RidePath;
 import com.amap.api.services.route.RideRouteResult;
 import com.amap.api.services.route.RideStep;
-import com.amap.api.services.route.RouteBusLineItem;
 import com.amap.api.services.route.RouteResult;
 import com.amap.api.services.route.RouteSearch;
 import com.amap.api.services.route.WalkPath;
@@ -57,11 +55,9 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
     private com.amap.api.services.core.LatLonPoint goal_loc=null;
     private RouteSearch.FromAndTo fromAndTo=null;
     private RouteSearch routeSearch=null;
-    private String city_code=null;
     private int aps_code=1;
     //用户界面元素
     private APS_Fragment aps_fragment=null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +86,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                     case R.id.walk_item:
                         aps_code=Common_Data.Walk_code;
                         break;
-                    /*case R.id.bus_item:
-                        aps_code=Common_Data.Bus_code;
-                        break;*/
                     default:
                         throw new IllegalStateException("Unexpected value: " + menuItem.getItemId());
                 }
@@ -168,7 +161,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
 
     //获取起点终点数据
     private void getLoc(@NonNull Intent data){
-        this.city_code=data.getStringExtra("city_code");
+        String city_code = data.getStringExtra("city_code");
         this.user_loc=new LatLonPoint(data.getDoubleExtra("slat",0),data.getDoubleExtra("slon",0));
         this.goal_loc=new LatLonPoint(data.getDoubleExtra("elat",0),data.getDoubleExtra("elon",0));
         Log.e("test1","地点坐标为："+goal_loc.getLongitude()+","+goal_loc.getLatitude());
@@ -203,10 +196,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 RouteSearch.WalkRouteQuery walkRouteQuery=new RouteSearch.WalkRouteQuery(fromAndTo,RouteSearch.WALK_DEFAULT);
                 routeSearch.calculateWalkRouteAsyn(walkRouteQuery);
                 break;
-            case Common_Data.Bus_code:
-                RouteSearch.BusRouteQuery busRouteQuery=new RouteSearch.BusRouteQuery(fromAndTo,RouteSearch.BUS_COMFORTABLE,city_code,0);
-                routeSearch.calculateBusRouteAsyn(busRouteQuery);
-                break;
             default:
                 return false;
         }
@@ -226,15 +215,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
         switch (code) {
             case Common_Data.Drive_code:
                 DriveRouteResult driveRouteResult=(DriveRouteResult)result;
-                /*多路径模式
-                List<DrivePath> paths=driveRouteResult.getPaths();
-                for(DrivePath mDrivePath:paths) {
-                    for(DriveStep mDriveStep:mDrivePath.getSteps()){
-                        for(LatLonPoint mLatLonPoint:mDriveStep.getPolyline()){
-                            latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
-                        }
-                    }
-                }*/
                 DrivePath drivePath=driveRouteResult.getPaths().get(0);
                 for(DriveStep mDriveStep:drivePath.getSteps()){
                     for(LatLonPoint mLatLonPoint:mDriveStep.getPolyline()){
@@ -260,19 +240,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                     for(LatLonPoint mLatLonPoint:mWalkStep.getPolyline()){
                         latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
                     }
-                }
-                break;
-            case Common_Data.Bus_code:
-                BusRouteResult busRouteResult=(BusRouteResult)result;
-                BusPath busPath=busRouteResult.getPaths().get(0);
-                Log.e("test","开始绘制公交路线");
-                for(BusStep mBusStep:busPath.getSteps()){
-                    for(RouteBusLineItem busLineItem:mBusStep.getBusLines()){
-                        for(LatLonPoint mLatLonPoint:busLineItem.getPolyline()){
-                            latLngs.add(new LatLng(mLatLonPoint.getLatitude(),mLatLonPoint.getLongitude()));
-                        }
-                    }
-                    //todo 增加绘制公交-步行路线
                 }
                 break;
             default:

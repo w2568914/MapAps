@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MapAps</string>
+    <string name="app_name">瞎导地图</string>
 
     <string name="driving_route">驾车</string>
     <string name="busing_route">公交</string>

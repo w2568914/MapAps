@@ -135,7 +135,7 @@ public class SearchHistoryManager {
 
     //获取指定元素全部记录
     public List<Tip> getAllTipsRecords(){
-        //todo 怀疑返回list错误
+
         List<Tip> tipList= new ArrayList<>();
         List<String> detail_list=getAllStringRecorsByKey("detail");
         List<String> name_list=getAllStringRecorsByKey("name");

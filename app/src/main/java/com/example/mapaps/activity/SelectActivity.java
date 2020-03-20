@@ -62,6 +62,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     private LatLonPoint user_loc=null;
     private LatLonPoint goal_loc=null;
     private Tip loc=null;
+    private List<Tip> oldData=null;
     private String city_code="";
     private Intent loc_intent=null;
     private String key_word="";
@@ -75,7 +76,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     //城市数据
     protected List<ProviceBean> proviceBeanList=new ArrayList<>();
     protected ArrayList<ArrayList<String>> cityBeanArrayList=new ArrayList<>();
-    protected ArrayList<ArrayList<ArrayList<String>>> areaarrayList=new ArrayList<>();
+    //protected ArrayList<ArrayList<ArrayList<String>>> areaarrayList=new ArrayList<>();
 
     //顶部搜索框
     private EditText startText=null;
@@ -94,7 +95,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
 
         Intent intent=getIntent();
         user_loc=new LatLonPoint(intent.getDoubleExtra("slat",0),intent.getDoubleExtra("slon",0));
-        //city_code=intent.getStringExtra("city_code");
 
         searchHistoryManager=new SearchHistoryManager(this,DbTableName);
         inputMethodManager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -171,7 +171,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     if(!searchHistoryManager.isExist("name",loc_intent.getStringExtra("name"))){
                        addSearchRecord();
                     }
-
                     startActivity(loc_intent);
                     finish();
                 }
@@ -350,6 +349,16 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
                 if(i==CODE_AMAP_SUCCESS){
                     city_code=geocodeResult.getGeocodeAddressList().get(0).getAdcode();
+                    if(start_flag){
+                        key_word=startText.getText().toString();
+                        startText.requestFocus();
+                    }
+                    else if(input_flag){
+                        key_word=inputText.getText().toString();
+                        inputText.requestFocus();
+                    }
+                    Log.e("test","keyword:"+key_word+"\ncity_code:"+city_code);
+                    doInputTipsQuery(key_word,city_code);
                 }
             }
         });
@@ -367,10 +376,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         //分配数据
         for(int i=0;i<proviceBeanList.size();i++){
             ArrayList<String> citylist=new ArrayList<>();
-            ArrayList<ArrayList<String>> arealist=new ArrayList<>();
+            //ArrayList<ArrayList<String>> arealist=new ArrayList<>();
             for(int j=0;j<proviceBeanList.get(i).getCity().size();j++){
                 citylist.add(proviceBeanList.get(i).getCity().get(j).getName());
-                ArrayList<String> city_area_list=new ArrayList<>();
+                /*ArrayList<String> city_area_list=new ArrayList<>();
                 if(proviceBeanList.get(i).getCity().get(j).getArea()==null
                         ||proviceBeanList.get(i).getCity().get(j).getArea().size()==0){
                     city_area_list.add(" ");
@@ -378,10 +387,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 else {
                     city_area_list.addAll(proviceBeanList.get(i).getCity().get(j).getArea());
                 }
-                arealist.add(city_area_list);
+                arealist.add(city_area_list);*/
             }
             this.cityBeanArrayList.add(citylist);
-            this.areaarrayList.add(arealist);
+            //this.areaarrayList.add(arealist);
         }
 
     }
@@ -396,13 +405,11 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             @Override
             public void onOptionsSelect(int options1, int options2, int options3, View v) {
                 String tx=proviceBeanList.get(options1).getName()+
-                        cityBeanArrayList.get(options1).get(options2)+
-                        areaarrayList.get(options1).get(options2).get(options3);
+                        cityBeanArrayList.get(options1).get(options2);
+                        //areaarrayList.get(options1).get(options2).get(options3);
                 Toast.makeText(SelectActivity.this,tx,Toast.LENGTH_SHORT).show();
                 getCity_code(tx);
                 city_chosen_btn.setText(cityBeanArrayList.get(options1).get(options2));
-                Log.e("test","keyword:"+key_word+"\ncity_code:"+city_code);
-                doInputTipsQuery(key_word,city_code);
             }
         })
                 .setTitleText("选择城市")
@@ -414,10 +421,20 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                     public void onClick(View v) {
                         city_code="";
                         city_chosen_btn.setText("选择城市");
+                        if(start_flag){
+                            key_word=startText.getText().toString();
+                            startText.requestFocus();
+                        }
+                        else if(input_flag){
+                            key_word=inputText.getText().toString();
+                            inputText.requestFocus();
+                        }
+                        Log.e("test","keyword:"+key_word+"\ncity_code:"+city_code);
+                        doInputTipsQuery(key_word,city_code);
                     }
                 })
                 .build();
-        optionsPickerView.setPicker(proviceBeanList,cityBeanArrayList,areaarrayList);
+        optionsPickerView.setPicker(proviceBeanList,cityBeanArrayList);
         optionsPickerView.show();
     }
 
@@ -443,7 +460,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 start_btn.setFocusable(true);
             }
             this.key_word=keyWord;
-            doInputTipsQuery(keyWord,this.city_code);
+            doInputTipsQuery(keyWord,city_code);
         }
         else {
             if(!start_flag) {
@@ -548,6 +565,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         if(i==CODE_AMAP_SUCCESS){
             if(!list.isEmpty()){
                 Log.e("test","总计"+list.size()+"条记录\n"+"城市为："+city_code);
+
                 //解析获取到的PoiItem列表
                 POI_list.setAdapter(new CommonAdapter<Tip>(this,R.layout.search_list_item,list) {
                     @Override
@@ -604,6 +622,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                         });
                     }
                 });
+                POI_list.getAdapter().notifyItemInserted(0);
             }
         }
     }

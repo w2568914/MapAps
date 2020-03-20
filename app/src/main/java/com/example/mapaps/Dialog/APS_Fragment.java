@@ -66,6 +66,7 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
         View view= inflater.inflate(R.layout.fragment_aps,container,false);
         //初始化导航组件
         mapNavi=AMapNavi.getInstance(view.getContext());
+        mapNavi.setUseInnerVoice(true);
         mapNavi.addAMapNaviListener(this);
         //设置模拟导航的行车速度
         mapNavi.setEmulatorNaviSpeed(75);
@@ -310,6 +311,7 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
     public void onCalculateRouteSuccess(int[] ints) {
         //算路成功
         if(ints.length!=0){
+            //todo 模拟导航模式，实际使用使需切换
             mapNavi.startNavi(NaviType.EMULATOR);
             Log.e("test","算路");
         }
@@ -354,6 +356,7 @@ public class APS_Fragment extends DialogFragment implements AMapNaviListener, AM
     public void onCalculateRouteSuccess(AMapCalcRouteResult aMapCalcRouteResult) {
         //算路成功
         if(aMapCalcRouteResult.getErrorCode()==0){
+            //todo 模拟导航模式，实际使用使需切换
             mapNavi.startNavi(NaviType.EMULATOR);
             Log.e("test1","算路");
         }
