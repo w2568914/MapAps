@@ -44,12 +44,23 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.ui.AppBarConfiguration;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
 
-public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearch.OnRouteSearchListener , Common_Data {
+public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearch.OnRouteSearchListener, EasyPermissions.PermissionCallbacks , Common_Data {
 
     //地图样式参数
+    @BindView(R.id.aps_bot_view)
     MapView mMapView=null;
-    AMap aMap=null;
+    @BindView(R.id.nav_view)
+    BottomNavigationView navView;
+    @BindView(R.id.start_aps_Button)
+    Button start_btn;
+    @BindView(R.id.return_aps_Button)
+    Button re_select_btn;
+    private AMap aMap=null;
     //路线规划参数
     private com.amap.api.services.core.LatLonPoint user_loc=null;
     private com.amap.api.services.core.LatLonPoint goal_loc=null;
@@ -63,15 +74,46 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aps__bottom);
-
+        //绑定控件
+        ButterKnife.bind(this);
+        //获取地点
         getLoc(getIntent());
-        //获取地图控件引用
-        mMapView = (MapView) findViewById(R.id.aps_bot_view);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
         mMapView.onCreate(savedInstanceState);
         init();
+    }
 
-        BottomNavigationView navView = findViewById(R.id.nav_view);
+    // 初始化AMap对象
+    void init() {
+
+        if (aMap == null) {
+            aMap = mMapView.getMap();
+            // 创建一个设置放大级别的CameraUpdate
+            CameraUpdate cu = CameraUpdateFactory.zoomTo(14);
+            // 设置地图的默认放大级别
+            aMap.moveCamera(cu);
+            // 创建一个更改地图倾斜度的CameraUpdate
+            CameraUpdate tiltUpdate = CameraUpdateFactory.changeTilt(30);
+            // 改变地图的倾斜度
+            aMap.moveCamera(tiltUpdate);
+            //将地图移动到定位点
+            aMap.moveCamera(CameraUpdateFactory.changeLatLng(new LatLng(this.user_loc.getLatitude(),this.user_loc.getLongitude())));
+            //设置点击事件
+            aMap.setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    return false;
+                }
+            });
+            aps_fragment=new APS_Fragment();
+            aps_fragment.setAps_code(aps_code);
+            aps_fragment.setmStartLatlng(user_loc);
+            aps_fragment.setmEndLatlng(goal_loc);
+            if(!startRouteSreach(user_loc,goal_loc,aps_code)) {
+                Log.e("test","初始规划失败");
+            }
+        }
+
         navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -103,7 +145,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 R.id.drive_item,R.id.ride_item,R.id.walk_item)
                 .build();
 
-        Button start_btn=findViewById(R.id.start_aps_Button);
+
         start_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,7 +158,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             }
         });
 
-        Button re_select_btn=findViewById(R.id.return_aps_Button);
         re_select_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,37 +167,6 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
                 finish();
             }
         });
-    }
-
-    // 初始化AMap对象
-    void init() {
-        if (aMap == null) {
-            aMap = mMapView.getMap();
-            // 创建一个设置放大级别的CameraUpdate
-            CameraUpdate cu = CameraUpdateFactory.zoomTo(14);
-            // 设置地图的默认放大级别
-            aMap.moveCamera(cu);
-            // 创建一个更改地图倾斜度的CameraUpdate
-            CameraUpdate tiltUpdate = CameraUpdateFactory.changeTilt(30);
-            // 改变地图的倾斜度
-            aMap.moveCamera(tiltUpdate);
-            //将地图移动到定位点
-            aMap.moveCamera(CameraUpdateFactory.changeLatLng(new LatLng(this.user_loc.getLatitude(),this.user_loc.getLongitude())));
-            //设置点击事件
-            aMap.setOnMarkerClickListener(new AMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    return false;
-                }
-            });
-            aps_fragment=new APS_Fragment();
-            aps_fragment.setAps_code(aps_code);
-            aps_fragment.setmStartLatlng(user_loc);
-            aps_fragment.setmEndLatlng(goal_loc);
-            if(!startRouteSreach(user_loc,goal_loc,aps_code)) {
-                Log.e("test","初始规划失败");
-            }
-        }
     }
 
     //获取起点终点数据
@@ -285,7 +295,7 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
             Toast.makeText(this,"目的地无法到达，请更换目的地",Toast.LENGTH_LONG).show();
         }
         else {
-            Toast.makeText(this,"未知错误",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"距离过长，请更换出行方式",Toast.LENGTH_LONG).show();
         }
     }
 
@@ -381,4 +391,16 @@ public class Aps_Bottom_Activity extends AppCompatActivity implements RouteSearc
         }
     }
 
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+//若有被永久禁用权限，则跳转设置界面要求用户手动打开
+        if(EasyPermissions.somePermissionPermanentlyDenied(this,perms)){
+            new AppSettingsDialog.Builder(this).build().show();
+        }
+    }
 }

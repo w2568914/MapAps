@@ -1,9 +1,7 @@
 package com.example.mapaps.activity;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,18 +27,21 @@ import com.example.mapaps.adapter.Common_Data;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
 
-public class MainActivity extends AppCompatActivity implements LocationSource, AMapLocationListener, Common_Data {
+public class MainActivity extends AppCompatActivity implements LocationSource, AMapLocationListener, EasyPermissions.PermissionCallbacks, Common_Data {
 
     //地图样式参数
     private static final int WRITE_COARSE_LOCATION_REQUEST_CODE = 0;
-    MapView mMapView=null;
-    AMap aMap=null;
-    MyLocationStyle myLocationStyle=null;
+    private AMap aMap=null;
+    private MyLocationStyle myLocationStyle=null;
 
     //定位需要的声明
     private AMapLocationClient mLocationClient = null;
@@ -53,16 +54,21 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
     private String city_code=null;
 
     //用户界面元素
-    private EditText Select_btn_bom=null;
+    @BindView(R.id.select_edit_top)
+    EditText Select_btn_bom;
+    //获取地图控件引用
+    @BindView(R.id.map)
+    MapView mMapView=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //获取地图控件引用
-        mMapView = (MapView) findViewById(R.id.map);
+        //绑定控件
+        ButterKnife.bind(this);
         //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
         mMapView.onCreate(savedInstanceState);
+        //检查权限
         checkPer();
         //初始化地图组件
         init();
@@ -108,7 +114,6 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
         // 开启定位
         initLoc();
 
-        Select_btn_bom=findViewById(R.id.select_edit_top);
         Select_btn_bom.clearFocus();
         Select_btn_bom.setSelected(false);
         Select_btn_bom.setOnClickListener(new View.OnClickListener() {
@@ -159,24 +164,8 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
 
     //检查权限
     private void checkPer(){
-        //  SDK在Android 6.0以上的版本需要进行运行检测的动态权限如下：
-        //    Manifest.permission.ACCESS_COARSE_LOCATION,
-        //    Manifest.permission.ACCESS_FINE_LOCATION,
-        //    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        //    Manifest.permission.READ_EXTERNAL_STORAGE,
-        //    Manifest.permission.READ_PHONE_STATE
-
-        //动态检查定位及内存权限
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //申请WRITE_EXTERNAL_STORAGE权限
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
-        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            //申请WRITE_EXTERNAL_STORAGE权限
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    WRITE_COARSE_LOCATION_REQUEST_CODE);//自定义的code
+        if(!EasyPermissions.hasPermissions(this,Common_Data.perms)){
+            EasyPermissions.requestPermissions(this,"瞎导导航需要以下权限才能为您服务",Common_Data.request_code,Common_Data.perms);
         }
     }
 
@@ -218,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
     //定位监听回调
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
+
         if (aMapLocation != null) {
             if (aMapLocation.getErrorCode() == 0) {
                 //定位成功回调信息，设置相关消息
@@ -259,8 +249,28 @@ public class MainActivity extends AppCompatActivity implements LocationSource, A
                 Log.e("AmapError", "location Error, ErrCode:"
                         + aMapLocation.getErrorCode() + ", errInfo:"
                         + aMapLocation.getErrorInfo());
-                Toast.makeText(getApplicationContext(), "定位失败", Toast.LENGTH_LONG).show();
+                if(!EasyPermissions.hasPermissions(this,Common_Data.loc_perms)){
+                    Toast.makeText(getApplicationContext(), "没有定位权限", Toast.LENGTH_LONG).show();
+                    EasyPermissions.requestPermissions(this,"",Common_Data.request_code+1,Common_Data.loc_perms);
+                }else {
+                    Toast.makeText(getApplicationContext(), "定位失败", Toast.LENGTH_LONG).show();
+                }
             }
+        }
+    }
+
+    //获权回调
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    //拒权回调
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+        //若有被永久禁用权限，则跳转设置界面要求用户手动打开
+        if(EasyPermissions.somePermissionPermanentlyDenied(this,perms)){
+            new AppSettingsDialog.Builder(this).build().show();
         }
     }
 }

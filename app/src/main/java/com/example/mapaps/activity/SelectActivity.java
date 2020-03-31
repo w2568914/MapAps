@@ -52,6 +52,8 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static com.amap.api.services.core.AMapException.CODE_AMAP_SUCCESS;
 
@@ -79,22 +81,37 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
     //protected ArrayList<ArrayList<ArrayList<String>>> areaarrayList=new ArrayList<>();
 
     //顶部搜索框
-    private EditText startText=null;
-    private ImageView start_delete_btn=null;
-    private EditText inputText=null;
-    private ImageView delete_btn=null;
-    private Button start_btn=null;
-    private Button city_chosen_btn=null;
-    private RecyclerView POI_list=null;
+    @BindView(R.id.start_edit_text)
+    EditText startText;
+    @BindView(R.id.start_edit_delete)
+    ImageView start_delete_btn;
+    @BindView(R.id.search_edit_text)
+    EditText inputText;
+    @BindView(R.id.search_edit_delete)
+    ImageView delete_btn;
+    @BindView(R.id.start_btn)
+    Button start_btn;
+    @BindView(R.id.city_chosen)
+    Button city_chosen_btn;
+    @BindView(R.id.search_list_view)
+    RecyclerView POI_list;
     private InputMethodManager inputMethodManager=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select);
-
+        //绑定控件
+        ButterKnife.bind(this);
+        //获取地点数据
         Intent intent=getIntent();
         user_loc=new LatLonPoint(intent.getDoubleExtra("slat",0),intent.getDoubleExtra("slon",0));
+        //初始化界面
+        init();
+
+    }
+
+    private void init(){
 
         searchHistoryManager=new SearchHistoryManager(this,DbTableName);
         inputMethodManager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -102,12 +119,10 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
         poiItems=new ArrayList<PoiItem>();
         loc=new Tip();
 
-        POI_list=findViewById(R.id.search_list_view);
         POI_list.setLayoutManager(new LinearLayoutManager(this));
 
         getSearchRecord();
 
-        startText=findViewById(R.id.start_edit_text);
         startText.addTextChangedListener(this);
         startText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -125,7 +140,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         });
 
-        start_delete_btn=findViewById(R.id.start_edit_delete);
         start_delete_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,7 +148,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         });
 
-        inputText=findViewById(R.id.search_edit_text);
         inputText.addTextChangedListener(this);
         inputText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -152,7 +165,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         });
 
-        delete_btn=findViewById(R.id.search_edit_delete);
         delete_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -161,7 +173,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         });
 
-        start_btn=(Button)findViewById(R.id.start_btn);
         start_btn.setClickable(false);
         start_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -169,7 +180,7 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 if(loc_intent!=null) {
                     //加入历史记录
                     if(!searchHistoryManager.isExist("name",loc_intent.getStringExtra("name"))){
-                       addSearchRecord();
+                        addSearchRecord();
                     }
                     startActivity(loc_intent);
                     finish();
@@ -180,7 +191,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
             }
         });
 
-        city_chosen_btn=findViewById(R.id.city_chosen);
         city_chosen_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -194,7 +204,6 @@ public class SelectActivity extends AppCompatActivity implements TextWatcher, In
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             }
         }
-
     }
 
     //开始进行poi搜索
